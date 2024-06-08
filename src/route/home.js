@@ -1,16 +1,23 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {useQuery} from "react-query";
 import axios from "axios";
 import {Link} from "react-router-dom";
-const fetchUsers = async () => {
-    const { data } = await axios.post('/api/user/getAll');
-    return data;
-};
-
-
 function Home() {
-    // const [user, setUser] = useState([]);
-    const { data, error, isLoading, isError } = useQuery('users', fetchUsers);
+    const fetchUsers = async () => {
+        const { data } = await axios.post('/api/user/getAll');
+        setUsersData(data)
+    };
+
+    const [usersData, setUsersData] = useState([]);
+
+    useEffect(() => {
+        fetchUsers();
+    }, [fetchUsers]);
+
+    const { error, isLoading, isError } = useQuery('users', fetchUsers);
+    const OnClickUserInfo = (UserName, UUID) => {
+        sessionStorage.setItem("UUID", UUID);
+    }
 
     if (isLoading) {
         return <div>Loading...</div>;
@@ -19,10 +26,9 @@ function Home() {
     if (isError) {
         return <div>Error: {error.message}</div>;
     }
-
     return (
-        <div className="App">
-            {data.map((item) => (
+        <div>
+            {usersData.map((item) => (
                     <div key={item.UUID}>
                         <div>
                             Name: {item.UserName},&nbsp;
@@ -30,7 +36,7 @@ function Home() {
                             [{item.UserLocation[0]},&nbsp;
                             {item.UserLocation[1]},&nbsp;
                             {item.UserLocation[2]}]&nbsp;
-                            <Link to={`/Info/${item.UserName}`}>UserInfo</Link>
+                            <Link to={"/info/" + item.UserName} onClick={() => OnClickUserInfo(item.UserName, item.UUID)}>UserInfo</Link>
                         </div>
                     </div>
                 )
